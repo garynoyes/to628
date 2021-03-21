@@ -1,0 +1,117 @@
+---
+title: "Group Project 1 - Prosper Data Analysis"
+author: "Gary Noyes"
+date: "3/21/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Data Prep
+
+Read in data and examine structure
+```{r}
+loans <- read.csv("ProjectA_Listings2013.csv")
+
+str(loans)
+summary(loans)
+```
+
+Some of the factors will make the fields difficult to work with, so we're reducing these
+
+```{r}
+# Convert date factors to date format
+loans$loan_origination_date <- as.Date(as.character(loans$loan_origination_date), format="%m/%d/%Y")
+loans$first_recorded_credit_line <- as.Date(as.character(loans$first_recorded_credit_line), format="%m/%d/%Y")
+
+# Create length_credit_history variable which represents the number of days between the origination date and the first recorded credit line
+loans$length_credit_history <- loans$loan_origination_date - loans$first_recorded_credit_line
+
+# Remove borrower city. No real way to reduce this factor and I'm pretty sure this would be considered redlining (illegal) anyway
+loans$borrower_city <- NULL
+```
+
+We also need to create a binary default variable to use as the dependent variable in our logistic model.
+
+```{r}
+loans$default <- ifelse(loans$loan_status_description == "DEFAULTED" | loans$loan_status_description == "CHARGEOFF", 1, 0)
+```
+
+
+
+### Linear Regression Model
+
+First attempt with all potential independent variables, with the exception of those variables which would only be known after a loan is completed
+
+```{r}
+linear_1 <- glm(borrower_rate ~ . -loan_status - loan_status_description -default, data = loans)
+summary(linear_1)
+```
+
+Second attempt keeping only statistically significant variables (p < .05) from first attempt
+
+```{r}
+linear_2 <- glm(borrower_rate ~ number_of_days + principal_balance + loan_origination_date + amount_funded + prosper_rating + listing_term + listing_monthly_payment + scorex + prosper_score + listing_category_id + income_range_description + stated_monthly_income +  employment_status_description + occupation + borrower_state + lender_indicator + monthly_debt + public_records_last10_years +  current_credit_lines + open_credit_lines + bankcard_utilization + total_open_revolving_accounts + total_inquiries + delinquencies_over30_days + is_homeowner, data = loans)
+
+summary(linear_2)
+
+```
+
+Third attempt removing some variables that are duplicative (e.g., range on top of actual number). Also removing borrower state as only a small number of states appear to be statistically signficant
+
+```{r}
+linear_3 <- glm(borrower_rate ~ number_of_days + principal_balance + loan_origination_date + amount_funded + prosper_rating + listing_term + listing_monthly_payment + scorex + prosper_score + listing_category_id +  stated_monthly_income + employment_status_description + occupation + lender_indicator + monthly_debt + public_records_last10_years +  current_credit_lines + open_credit_lines + bankcard_utilization + total_open_revolving_accounts + total_inquiries + delinquencies_over30_days + is_homeowner, data = loans)
+
+summary(linear_3)
+
+```
+
+Fourth attempt removing variables whose statistical significance has dropped out with changes
+
+```{r}
+linear_4 <- glm(borrower_rate ~ number_of_days + principal_balance + loan_origination_date + amount_funded + prosper_rating + listing_term + listing_monthly_payment + scorex + prosper_score + listing_category_id +  stated_monthly_income + employment_status_description + occupation + lender_indicator + monthly_debt + public_records_last10_years +  bankcard_utilization + total_open_revolving_accounts +  delinquencies_over30_days , data = loans)
+
+summary(linear_4)
+```
+
+Fifth attempt removing variables whose statistical significance has dropped out with changes
+
+```{r}
+linear_5 <- glm(borrower_rate ~ number_of_days + principal_balance + loan_origination_date + amount_funded + prosper_rating + listing_term + listing_monthly_payment + scorex + prosper_score + listing_category_id +  stated_monthly_income + employment_status_description + occupation + lender_indicator + public_records_last10_years +  bankcard_utilization + delinquencies_over30_days , data = loans)
+
+summary(linear_5)
+```
+
+Checking R-Squared
+
+```{r}
+with(summary(linear_5), 1 - deviance/null.deviance)
+```
+
+Sixth attempt dropping occupation in an attempt to simplify the model
+```{r}
+linear_6 <- glm(borrower_rate ~ number_of_days + principal_balance + loan_origination_date + amount_funded + prosper_rating + listing_term + listing_monthly_payment + scorex + prosper_score + listing_category_id +  stated_monthly_income + employment_status_description + lender_indicator + public_records_last10_years +  bankcard_utilization + delinquencies_over30_days , data = loans)
+
+summary(linear_6)
+```
+
+Checking R-Squared to see how much predictive power is lost with removal of occupation variable
+
+```{r}
+with(summary(linear_6), 1 - deviance/null.deviance)
+```
+
+No large dropoff in R-Squared, so using linear_6 as final model. 95% of variance in borrower rate is explained by the independent variables in the linear regression model. 
+
+### Logistic Regression Model
+
+Start with independent variables used in linear regression model to determine if all variables are significant predictors of default.
+
+```{r}
+logit1 <- glm(default ~ number_of_days + principal_balance + loan_origination_date + amount_funded + prosper_rating + listing_term + listing_monthly_payment + scorex + prosper_score + listing_category_id +  stated_monthly_income + employment_status_description + lender_indicator + public_records_last10_years +  bankcard_utilization + delinquencies_over30_days , data = loans)
+
+summary(logit1)
+```
+
