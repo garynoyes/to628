@@ -20,13 +20,19 @@ names(startups)[names(startups) == "Unnamed..6"] <- "location"
 ```
 
 ```{r}
-logit1 <- lm(success ~ . -state_code -zip_code -state_code -id -object_id -location -name -city -closed_at -founded_at -first_funding_at -last_funding_at -is_othercategory -category_code -state_code.1 -is_otherstate -status -Unnamed..0 -labels -is_top500, data = startups)
+logit1 <- glm(success ~ . -state_code -zip_code -state_code -id -object_id -location -name -city -closed_at -founded_at -first_funding_at -last_funding_at -is_othercategory -category_code -state_code.1 -is_otherstate -status -Unnamed..0 -labels -is_top500, data = startups, family="binomial")
 summary(logit1)
 
 ```
 
 ```{r}
-logit2 <- lm(success ~ age_last_milestone_year + relationships + is_otherstate + is_gamesvideo + avg_participants + has_VC, data = startups)
+logit2 <- glm(success ~ age_last_milestone_year + relationships + is_otherstate + is_gamesvideo + avg_participants + has_VC, data = startups, family="binomial")
 summary(logit2)
 ```
+
+
+
+
+
+
 
