@@ -7,9 +7,21 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Load required libraries
+
 ```{r}
+library(gmodels)
+library(C50)
+```
+
+
+## Import and clean data
+
+```{r}
+# Read in data from csv file
 hotels <- read.csv("hotel_bookings.csv")
 
+# Convert appropriate character variables to factors
 hotels$hotel <- as.factor(hotels$hotel)
 hotels$arrival_date_month <- as.factor(hotels$arrival_date_month)
 hotels$market_segment <- as.factor(hotels$market_segment)
@@ -17,34 +29,78 @@ hotels$deposit_type <- as.factor(hotels$deposit_type)
 hotels$customer_type <- as.factor(hotels$customer_type)
 hotels$reserved_room_type <- as.factor(hotels$reserved_room_type)
 hotels$distribution_channel <- as.factor(hotels$distribution_channel)
+hotels$meal <- as.factor(hotels$meal)
+hotels$assigned_room_type <- as.factor(hotels$assigned_room_type)
 
-hotels$meal <- NULL
-hotels$country <- NULL
-hotels$assigned_room_type <- NULL
-hotels$agent <- NULL
-hotels$company <- NULL
-hotels$reservation_status <- NULL
-hotels$reservation_status_date <- NULL
+# Remove certain fields which provide no additional information
+hotels$reservation_status <- NULL #duplicative of is_cancelled 
+hotels$reservation_status_date <- NULL #may be of interest if we wanted to look at lead time of cancellation, but for our purposes we are removing
+hotels$agent <- NULL #large factor of individual agent IDs - we should have whether or not an agent was involved (and type of agent) based on distribution_channel
+hotels$company <- NULL #large factor of individual companies - we should have whether or not this is a corporate booking based on distribution_channel
+hotels$country <- NULL #large factor of country codes - may be interesting if we think there is some sort of cultural impact on cancellations, but it is slowing down our model training to the point where it has become difficult to work with included
+  
 
+# Examine structure and summary of dataset
 str(hotels)
 summary(hotels)
 ```
 
-# First Logit Model
+## Create training and test sets for logit model and decision tree
+
 ```{r}
-logit1 <- glm(is_canceled ~ ., data=hotels, family="binomial")
+# Select 20,000 random rows for test data
+set.seed(12345)
+test_set <- sample(1:nrow(hotels), 20000)
+
+# Create a train set and test set
+hotels_train <- hotels[-test_set, ]
+hotels_test <- hotels[test_set, ]
+```
+
+
+## First Logit Model
+```{r}
+# Starting with all potential independent variables
+logit1 <- glm(is_canceled ~ ., data=hotels_train, family="binomial")
 summary(logit1)
 
 ```
-# Second Logit Model
+## Second Logit Model
 ```{r}
-logit1 <- glm(is_canceled ~ . -required_car_parking_spaces - hotel - days_in_waiting_list, data=hotels, family="binomial")
-summary(logit1)
+# Removing insignificant independent variables from logit1
+logit2 <- glm(is_canceled ~ . -arrival_date_year -required_car_parking_spaces -days_in_waiting_list, data=hotels_train, family="binomial")
+summary(logit2)
 ```
 
+## Predicting test dataset with final logit model
 
+```{r}
+# Use logit2 to predict cancellations in hotels_test
+logit_predict <- predict(logit2, hotels_test, type="response")
+logit_predict <- ifelse(logit_predict > 0.5, 1, 0)
 
+# View confusion matrix
+CrossTable(hotels_test$is_canceled, logit_predict)
+```
+The logistic regression model is able to predict hotel room cancellations with an accuracy of **`r round(mean(logit_predict == hotels_test$is_canceled)*100)`**%.
 
+## Decision Tree Model
+
+```{r}
+# Train decision tree using all available independent variables
+tree1 <- C5.0(as.factor(is_canceled) ~ . , data=hotels_train)
+
+# Note that we aren't displaying the decision tree itself, as the output is massive
+
+# Use tree1 to predict cancellations in hotels_test
+tree_predict <- predict(tree1, hotels_test)
+#tree_predict <- ifelse(logit_predict > 0.5, 1, 0)
+
+# View confusion matrix
+CrossTable(hotels_test$is_canceled, tree_predict)
+
+```
+The decision tree model is able to predict hotel room cancellations with an accuracy of **`r round(mean(hotels_test$is_canceled == tree_predict)*100)`**%.
 
 
 
