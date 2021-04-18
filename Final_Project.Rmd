@@ -1,0 +1,50 @@
+---
+title: "Final Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+hotels <- read.csv("hotel_bookings.csv")
+
+hotels$hotel <- as.factor(hotels$hotel)
+hotels$arrival_date_month <- as.factor(hotels$arrival_date_month)
+hotels$market_segment <- as.factor(hotels$market_segment)
+hotels$deposit_type <- as.factor(hotels$deposit_type)
+hotels$customer_type <- as.factor(hotels$customer_type)
+hotels$reserved_room_type <- as.factor(hotels$reserved_room_type)
+hotels$distribution_channel <- as.factor(hotels$distribution_channel)
+
+hotels$meal <- NULL
+hotels$country <- NULL
+hotels$assigned_room_type <- NULL
+hotels$agent <- NULL
+hotels$company <- NULL
+hotels$reservation_status <- NULL
+hotels$reservation_status_date <- NULL
+
+str(hotels)
+summary(hotels)
+```
+
+# First Logit Model
+```{r}
+logit1 <- glm(is_canceled ~ ., data=hotels, family="binomial")
+summary(logit1)
+
+```
+# Second Logit Model
+```{r}
+logit1 <- glm(is_canceled ~ . -required_car_parking_spaces - hotel - days_in_waiting_list, data=hotels, family="binomial")
+summary(logit1)
+```
+
+
+
+
+
+
+
