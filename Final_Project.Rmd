@@ -107,6 +107,10 @@ The decision tree model is able to predict hotel room cancellations with an accu
 # Using model.matrix to convert all the factors to dummy variables
 hotels_numeric <- as.data.frame(model.matrix(~.-1,hotels))
 str(hotels_numeric)
+summary(hotels_numeric)
+
+# Removing a dummy variable which gets created with the previous code which for some reason is all NAs
+hotels_numeric$market_segmentUndefined <- NULL
 
 # Create function to normalize data
 normalize <- function(x) {
@@ -123,6 +127,16 @@ test_set <- sample(1:nrow(hotels_numeric), 20000)
 # Create a train set and test set
 hotels_numeric_train <- hotels_numeric[-test_set, ]
 hotels_numeric_test <- hotels_numeric[test_set, ]
+```
+```{r}
+hotels_numeric_trainlabels <- hotels_numeric_train[, "is_canceled"]
+hotels_numeric_testlabels <- hotels_numeric_test[, "is_canceled"]
+
+library(class)
+
+hotelknn_predict <- knn(train = hotels_numeric_train, test = hotels_numeric_test, cl = hotels_numeric_trainlabels, k = 100)
+
+CrossTable(x = hotels_numeric_testlabels, y = hotelknn_predict, prop.chisq = FALSE)
 ```
 
 

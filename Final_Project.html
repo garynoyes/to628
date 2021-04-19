@@ -679,7 +679,172 @@ str(hotels_numeric)</code></pre>
 ##  $ adr                           : num  0 0 75 75 98 ...
 ##  $ required_car_parking_spaces   : num  0 0 0 0 0 0 0 0 0 0 ...
 ##  $ total_of_special_requests     : num  0 0 0 0 1 1 0 1 1 0 ...</code></pre>
-<pre class="r"><code># Create function to normalize data
+<pre class="r"><code>summary(hotels_numeric)</code></pre>
+<pre><code>##  hotelCity Hotel  hotelResort Hotel  is_canceled       lead_time  
+##  Min.   :0.0000   Min.   :0.0000    Min.   :0.0000   Min.   :  0  
+##  1st Qu.:0.0000   1st Qu.:0.0000    1st Qu.:0.0000   1st Qu.: 18  
+##  Median :1.0000   Median :0.0000    Median :0.0000   Median : 69  
+##  Mean   :0.6644   Mean   :0.3356    Mean   :0.3704   Mean   :104  
+##  3rd Qu.:1.0000   3rd Qu.:1.0000    3rd Qu.:1.0000   3rd Qu.:160  
+##  Max.   :1.0000   Max.   :1.0000    Max.   :1.0000   Max.   :737  
+##  arrival_date_year arrival_date_monthAugust arrival_date_monthDecember
+##  Min.   :2015      Min.   :0.0000           Min.   :0.00000           
+##  1st Qu.:2016      1st Qu.:0.0000           1st Qu.:0.00000           
+##  Median :2016      Median :0.0000           Median :0.00000           
+##  Mean   :2016      Mean   :0.1162           Mean   :0.05679           
+##  3rd Qu.:2017      3rd Qu.:0.0000           3rd Qu.:0.00000           
+##  Max.   :2017      Max.   :1.0000           Max.   :1.00000           
+##  arrival_date_monthFebruary arrival_date_monthJanuary arrival_date_monthJuly
+##  Min.   :0.00000            Min.   :0.00000           Min.   :0.0000        
+##  1st Qu.:0.00000            1st Qu.:0.00000           1st Qu.:0.0000        
+##  Median :0.00000            Median :0.00000           Median :0.0000        
+##  Mean   :0.06758            Mean   :0.04966           Mean   :0.1061        
+##  3rd Qu.:0.00000            3rd Qu.:0.00000           3rd Qu.:0.0000        
+##  Max.   :1.00000            Max.   :1.00000           Max.   :1.0000        
+##  arrival_date_monthJune arrival_date_monthMarch arrival_date_monthMay
+##  Min.   :0.00000        Min.   :0.00000         Min.   :0.00000      
+##  1st Qu.:0.00000        1st Qu.:0.00000         1st Qu.:0.00000      
+##  Median :0.00000        Median :0.00000         Median :0.00000      
+##  Mean   :0.09163        Mean   :0.08204         Mean   :0.09876      
+##  3rd Qu.:0.00000        3rd Qu.:0.00000         3rd Qu.:0.00000      
+##  Max.   :1.00000        Max.   :1.00000         Max.   :1.00000      
+##  arrival_date_monthNovember arrival_date_monthOctober
+##  Min.   :0.00000            Min.   :0.00000          
+##  1st Qu.:0.00000            1st Qu.:0.00000          
+##  Median :0.00000            Median :0.00000          
+##  Mean   :0.05691            Mean   :0.09348          
+##  3rd Qu.:0.00000            3rd Qu.:0.00000          
+##  Max.   :1.00000            Max.   :1.00000          
+##  arrival_date_monthSeptember arrival_date_week_number arrival_date_day_of_month
+##  Min.   :0.00000             Min.   : 1.00            Min.   : 1.0             
+##  1st Qu.:0.00000             1st Qu.:16.00            1st Qu.: 8.0             
+##  Median :0.00000             Median :28.00            Median :16.0             
+##  Mean   :0.08802             Mean   :27.16            Mean   :15.8             
+##  3rd Qu.:0.00000             3rd Qu.:38.00            3rd Qu.:23.0             
+##  Max.   :1.00000             Max.   :53.00            Max.   :31.0             
+##  stays_in_weekend_nights stays_in_week_nights     adults      
+##  Min.   : 0.0000         Min.   : 0.0         Min.   : 0.000  
+##  1st Qu.: 0.0000         1st Qu.: 1.0         1st Qu.: 2.000  
+##  Median : 1.0000         Median : 2.0         Median : 2.000  
+##  Mean   : 0.9276         Mean   : 2.5         Mean   : 1.856  
+##  3rd Qu.: 2.0000         3rd Qu.: 3.0         3rd Qu.: 2.000  
+##  Max.   :19.0000         Max.   :50.0         Max.   :55.000  
+##     children           babies              mealFB             mealHB      
+##  Min.   : 0.0000   Min.   : 0.000000   Min.   :0.000000   Min.   :0.0000  
+##  1st Qu.: 0.0000   1st Qu.: 0.000000   1st Qu.:0.000000   1st Qu.:0.0000  
+##  Median : 0.0000   Median : 0.000000   Median :0.000000   Median :0.0000  
+##  Mean   : 0.1039   Mean   : 0.007949   Mean   :0.006684   Mean   :0.1211  
+##  3rd Qu.: 0.0000   3rd Qu.: 0.000000   3rd Qu.:0.000000   3rd Qu.:0.0000  
+##  Max.   :10.0000   Max.   :10.000000   Max.   :1.000000   Max.   :1.0000  
+##      mealSC        mealUndefined      market_segmentComplementary
+##  Min.   :0.00000   Min.   :0.000000   Min.   :0.000000           
+##  1st Qu.:0.00000   1st Qu.:0.000000   1st Qu.:0.000000           
+##  Median :0.00000   Median :0.000000   Median :0.000000           
+##  Mean   :0.08921   Mean   :0.009792   Mean   :0.006223           
+##  3rd Qu.:0.00000   3rd Qu.:0.000000   3rd Qu.:0.000000           
+##  Max.   :1.00000   Max.   :1.000000   Max.   :1.000000           
+##  market_segmentCorporate market_segmentDirect market_segmentGroups
+##  Min.   :0.00000         Min.   :0.0000       Min.   :0.0000      
+##  1st Qu.:0.00000         1st Qu.:0.0000       1st Qu.:0.0000      
+##  Median :0.00000         Median :0.0000       Median :0.0000      
+##  Mean   :0.04435         Mean   :0.1056       Mean   :0.1659      
+##  3rd Qu.:0.00000         3rd Qu.:0.0000       3rd Qu.:0.0000      
+##  Max.   :1.00000         Max.   :1.0000       Max.   :1.0000      
+##  market_segmentOffline TA/TO market_segmentOnline TA market_segmentUndefined
+##  Min.   :0.0000              Min.   :0.0000          Min.   :0              
+##  1st Qu.:0.0000              1st Qu.:0.0000          1st Qu.:0              
+##  Median :0.0000              Median :0.0000          Median :0              
+##  Mean   :0.2029              Mean   :0.4731          Mean   :0              
+##  3rd Qu.:0.0000              3rd Qu.:1.0000          3rd Qu.:0              
+##  Max.   :1.0000              Max.   :1.0000          Max.   :0              
+##  distribution_channelDirect distribution_channelGDS distribution_channelTA/TO
+##  Min.   :0.0000             Min.   :0.000000        Min.   :0.0000           
+##  1st Qu.:0.0000             1st Qu.:0.000000        1st Qu.:1.0000           
+##  Median :0.0000             Median :0.000000        Median :1.0000           
+##  Mean   :0.1227             Mean   :0.001617        Mean   :0.8198           
+##  3rd Qu.:0.0000             3rd Qu.:0.000000        3rd Qu.:1.0000           
+##  Max.   :1.0000             Max.   :1.000000        Max.   :1.0000           
+##  distribution_channelUndefined is_repeated_guest previous_cancellations
+##  Min.   :0.0e+00               Min.   :0.00000   Min.   : 0.00000      
+##  1st Qu.:0.0e+00               1st Qu.:0.00000   1st Qu.: 0.00000      
+##  Median :0.0e+00               Median :0.00000   Median : 0.00000      
+##  Mean   :8.4e-06               Mean   :0.03191   Mean   : 0.08712      
+##  3rd Qu.:0.0e+00               3rd Qu.:0.00000   3rd Qu.: 0.00000      
+##  Max.   :1.0e+00               Max.   :1.00000   Max.   :26.00000      
+##  previous_bookings_not_canceled reserved_room_typeB reserved_room_typeC
+##  Min.   : 0.0000                Min.   :0.000000    Min.   :0.000000   
+##  1st Qu.: 0.0000                1st Qu.:0.000000    1st Qu.:0.000000   
+##  Median : 0.0000                Median :0.000000    Median :0.000000   
+##  Mean   : 0.1371                Mean   :0.009331    Mean   :0.007807   
+##  3rd Qu.: 0.0000                3rd Qu.:0.000000    3rd Qu.:0.000000   
+##  Max.   :72.0000                Max.   :1.000000    Max.   :1.000000   
+##  reserved_room_typeD reserved_room_typeE reserved_room_typeF
+##  Min.   :0.0000      Min.   :0.00000     Min.   :0.00000    
+##  1st Qu.:0.0000      1st Qu.:0.00000     1st Qu.:0.00000    
+##  Median :0.0000      Median :0.00000     Median :0.00000    
+##  Mean   :0.1608      Mean   :0.05474     Mean   :0.02427    
+##  3rd Qu.:0.0000      3rd Qu.:0.00000     3rd Qu.:0.00000    
+##  Max.   :1.0000      Max.   :1.00000     Max.   :1.00000    
+##  reserved_room_typeG reserved_room_typeH reserved_room_typeL
+##  Min.   :0.00000     Min.   :0.000000    Min.   :0.00e+00   
+##  1st Qu.:0.00000     1st Qu.:0.000000    1st Qu.:0.00e+00   
+##  Median :0.00000     Median :0.000000    Median :0.00e+00   
+##  Mean   :0.01754     Mean   :0.005034    Mean   :5.03e-05   
+##  3rd Qu.:0.00000     3rd Qu.:0.000000    3rd Qu.:0.00e+00   
+##  Max.   :1.00000     Max.   :1.000000    Max.   :1.00e+00   
+##  reserved_room_typeP assigned_room_typeB assigned_room_typeC
+##  Min.   :0.0000000   Min.   :0.00000     Min.   :0.00000    
+##  1st Qu.:0.0000000   1st Qu.:0.00000     1st Qu.:0.00000    
+##  Median :0.0000000   Median :0.00000     Median :0.00000    
+##  Mean   :0.0001005   Mean   :0.01808     Mean   :0.01989    
+##  3rd Qu.:0.0000000   3rd Qu.:0.00000     3rd Qu.:0.00000    
+##  Max.   :1.0000000   Max.   :1.00000     Max.   :1.00000    
+##  assigned_room_typeD assigned_room_typeE assigned_room_typeF
+##  Min.   :0.0000      Min.   :0.00000     Min.   :0.00000    
+##  1st Qu.:0.0000      1st Qu.:0.00000     1st Qu.:0.00000    
+##  Median :0.0000      Median :0.00000     Median :0.00000    
+##  Mean   :0.2121      Mean   :0.06538     Mean   :0.03142    
+##  3rd Qu.:0.0000      3rd Qu.:0.00000     3rd Qu.:0.00000    
+##  Max.   :1.0000      Max.   :1.00000     Max.   :1.00000    
+##  assigned_room_typeG assigned_room_typeH assigned_room_typeI
+##  Min.   :0.00000     Min.   :0.000000    Min.   :0.000000   
+##  1st Qu.:0.00000     1st Qu.:0.000000    1st Qu.:0.000000   
+##  Median :0.00000     Median :0.000000    Median :0.000000   
+##  Mean   :0.02138     Mean   :0.005964    Mean   :0.003041   
+##  3rd Qu.:0.00000     3rd Qu.:0.000000    3rd Qu.:0.000000   
+##  Max.   :1.00000     Max.   :1.000000    Max.   :1.000000   
+##  assigned_room_typeK assigned_room_typeL assigned_room_typeP booking_changes  
+##  Min.   :0.000000    Min.   :0.0e+00     Min.   :0.0000000   Min.   : 0.0000  
+##  1st Qu.:0.000000    1st Qu.:0.0e+00     1st Qu.:0.0000000   1st Qu.: 0.0000  
+##  Median :0.000000    Median :0.0e+00     Median :0.0000000   Median : 0.0000  
+##  Mean   :0.002337    Mean   :8.4e-06     Mean   :0.0001005   Mean   : 0.2211  
+##  3rd Qu.:0.000000    3rd Qu.:0.0e+00     3rd Qu.:0.0000000   3rd Qu.: 0.0000  
+##  Max.   :1.000000    Max.   :1.0e+00     Max.   :1.0000000   Max.   :21.0000  
+##  deposit_typeNon Refund deposit_typeRefundable days_in_waiting_list
+##  Min.   :0.0000         Min.   :0.000000       Min.   :  0.000     
+##  1st Qu.:0.0000         1st Qu.:0.000000       1st Qu.:  0.000     
+##  Median :0.0000         Median :0.000000       Median :  0.000     
+##  Mean   :0.1222         Mean   :0.001357       Mean   :  2.321     
+##  3rd Qu.:0.0000         3rd Qu.:0.000000       3rd Qu.:  0.000     
+##  Max.   :1.0000         Max.   :1.000000       Max.   :391.000     
+##  customer_typeGroup customer_typeTransient customer_typeTransient-Party
+##  Min.   :0.000000   Min.   :0.0000         Min.   :0.0000              
+##  1st Qu.:0.000000   1st Qu.:1.0000         1st Qu.:0.0000              
+##  Median :0.000000   Median :1.0000         Median :0.0000              
+##  Mean   :0.004833   Mean   :0.7506         Mean   :0.2104              
+##  3rd Qu.:0.000000   3rd Qu.:1.0000         3rd Qu.:0.0000              
+##  Max.   :1.000000   Max.   :1.0000         Max.   :1.0000              
+##       adr          required_car_parking_spaces total_of_special_requests
+##  Min.   :  -6.38   Min.   :0.00000             Min.   :0.0000           
+##  1st Qu.:  69.29   1st Qu.:0.00000             1st Qu.:0.0000           
+##  Median :  94.59   Median :0.00000             Median :0.0000           
+##  Mean   : 101.83   Mean   :0.06252             Mean   :0.5713           
+##  3rd Qu.: 126.00   3rd Qu.:0.00000             3rd Qu.:1.0000           
+##  Max.   :5400.00   Max.   :8.00000             Max.   :5.0000</code></pre>
+<pre class="r"><code># Removing a dummy variable which gets created with the previous code which for some reason is all NAs
+hotels_numeric$market_segmentUndefined &lt;- NULL
+
+# Create function to normalize data
 normalize &lt;- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
 }
@@ -694,6 +859,46 @@ test_set &lt;- sample(1:nrow(hotels_numeric), 20000)
 # Create a train set and test set
 hotels_numeric_train &lt;- hotels_numeric[-test_set, ]
 hotels_numeric_test &lt;- hotels_numeric[test_set, ]</code></pre>
+<pre class="r"><code>hotels_numeric_trainlabels &lt;- hotels_numeric_train[, &quot;is_canceled&quot;]
+hotels_numeric_testlabels &lt;- hotels_numeric_test[, &quot;is_canceled&quot;]
+
+library(class)
+
+hotelknn_predict &lt;- knn(train = hotels_numeric_train, test = hotels_numeric_test, cl = hotels_numeric_trainlabels, k = 100)
+
+CrossTable(x = hotels_numeric_testlabels, y = hotelknn_predict, prop.chisq = FALSE)</code></pre>
+<pre><code>## 
+##  
+##    Cell Contents
+## |-------------------------|
+## |                       N |
+## |           N / Row Total |
+## |           N / Col Total |
+## |         N / Table Total |
+## |-------------------------|
+## 
+##  
+## Total Observations in Table:  20000 
+## 
+##  
+##                           | hotelknn_predict 
+## hotels_numeric_testlabels |         0 |         1 | Row Total | 
+## --------------------------|-----------|-----------|-----------|
+##                         0 |     12616 |         9 |     12625 | 
+##                           |     0.999 |     0.001 |     0.631 | 
+##                           |     0.960 |     0.001 |           | 
+##                           |     0.631 |     0.000 |           | 
+## --------------------------|-----------|-----------|-----------|
+##                         1 |       520 |      6855 |      7375 | 
+##                           |     0.071 |     0.929 |     0.369 | 
+##                           |     0.040 |     0.999 |           | 
+##                           |     0.026 |     0.343 |           | 
+## --------------------------|-----------|-----------|-----------|
+##              Column Total |     13136 |      6864 |     20000 | 
+##                           |     0.657 |     0.343 |           | 
+## --------------------------|-----------|-----------|-----------|
+## 
+## </code></pre>
 </div>
 
 
