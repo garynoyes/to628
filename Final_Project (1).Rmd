@@ -1,0 +1,201 @@
+---
+title: "Final Project"
+author: Group 8 - Adebayo Adeosoye, Alyssa Indenbaum, Gary Noyes, Marites Seitz, Henry Silvas
+date: April 21, 2021
+output: html_document
+---
+## Executive Summary
+### For our final project, we decided to look at data surrounding hotel cancellations and answer the question of "Can hotel cancellations be predicted with a reasonable level of accuracy looking at factors such as arrival, customer type, and more?". After limiting the large data set to 20,000 random rows, we did three iterations of the logistic regression model, a decision tree model, and KNN model and an ANN model, and were able to achieve an accuracy of predicting hotel cancellations of >69% across the board, which we found reasonable with the understanding that we were trying to predict human behavior. Our hypothesis was validated in understanding that many of the factors collected about the average hotel customer would be statistically signficant in determining cancellations and would be good predictors of cancellations as well. 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load required libraries
+
+```{r}
+library(gmodels)
+library(C50)
+library(class)
+library(neuralnet)
+```
+
+
+## Import and clean data
+
+```{r}
+# Read in data from csv file
+hotels <- read.csv("hotel_bookings.csv")
+
+# Convert appropriate character variables to factors
+hotels$hotel <- as.factor(hotels$hotel)
+hotels$arrival_date_month <- as.factor(hotels$arrival_date_month)
+hotels$market_segment <- as.factor(hotels$market_segment)
+hotels$deposit_type <- as.factor(hotels$deposit_type)
+hotels$customer_type <- as.factor(hotels$customer_type)
+hotels$reserved_room_type <- as.factor(hotels$reserved_room_type)
+hotels$distribution_channel <- as.factor(hotels$distribution_channel)
+hotels$meal <- as.factor(hotels$meal)
+hotels$assigned_room_type <- as.factor(hotels$assigned_room_type)
+
+# Remove certain fields which provide no additional information
+hotels$reservation_status <- NULL #duplicative of is_cancelled 
+hotels$reservation_status_date <- NULL #may be of interest if we wanted to look at lead time of cancellation, but for our purposes we are removing
+hotels$agent <- NULL #large factor of individual agent IDs - we should have whether or not an agent was involved (and type of agent) based on distribution_channel
+hotels$company <- NULL #large factor of individual companies - we should have whether or not this is a corporate booking based on distribution_channel
+hotels$country <- NULL #large factor of country codes - may be interesting if we think there is some sort of cultural impact on cancellations, but it is slowing down our model training to the point where it has become difficult to work with included
+  
+
+# Examine structure and summary of dataset
+str(hotels)
+summary(hotels)
+```
+
+## Create training and test sets for logit model and decision tree
+
+```{r}
+# Select 20,000 random rows for test data
+set.seed(12345)
+test_set <- sample(1:nrow(hotels), 20000)
+
+# Create a train set and test set
+hotels_train <- hotels[-test_set, ]
+hotels_test <- hotels[test_set, ]
+```
+
+
+## First Logit Model
+```{r}
+# Starting with all potential independent variables
+logit1 <- glm(is_canceled ~ ., data=hotels_train, family="binomial")
+summary(logit1)
+
+```
+## Second Logit Model
+```{r}
+# Removing insignificant independent variables from logit1
+logit2 <- glm(is_canceled ~ . -arrival_date_year -required_car_parking_spaces -days_in_waiting_list, data=hotels_train, family="binomial")
+summary(logit2)
+```
+
+## Predicting test dataset with final logit model
+
+```{r}
+# Use logit2 to predict cancellations in hotels_test
+logit_predict <- predict(logit2, hotels_test, type="response")
+logit_predict <- ifelse(logit_predict > 0.5, 1, 0)
+
+# View confusion matrix
+CrossTable(hotels_test$is_canceled, logit_predict)
+```
+The logistic regression model is able to predict hotel room cancellations with an accuracy of **`r round(mean(logit_predict == hotels_test$is_canceled)*100)`**%.
+
+## Decision Tree Model
+
+```{r}
+# Train decision tree using all available independent variables
+tree1 <- C5.0(as.factor(is_canceled) ~ . , data=hotels_train)
+
+# Note that we aren't displaying the decision tree itself, as the output is massive
+
+# Use tree1 to predict cancellations in hotels_test
+tree_predict <- predict(tree1, hotels_test)
+#tree_predict <- ifelse(logit_predict > 0.5, 1, 0)
+
+# View confusion matrix
+CrossTable(hotels_test$is_canceled, tree_predict)
+
+```
+The decision tree model is able to predict hotel room cancellations with an accuracy of **`r round(mean(hotels_test$is_canceled == tree_predict)*100)`**%.
+
+## Create all-numeric, normalized training and test datasets for ANN and KNN models
+```{r}
+# Using model.matrix to convert all the factors to dummy variables
+hotels_numeric <- as.data.frame(model.matrix(~.-1,hotels))
+str(hotels_numeric)
+summary(hotels_numeric)
+
+# Removing a dummy variable which gets created with the previous code which for some reason is all NAs
+hotels_numeric$market_segmentUndefined <- NULL
+
+# Create function to normalize data
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+
+# Apply normalization function to all-numeric dataset
+hotels_numeric <- as.data.frame(lapply(hotels_numeric, normalize))
+
+# Selects 20,000 random rows for test data
+set.seed(12345)
+test_set <- sample(1:nrow(hotels_numeric), 20000) 
+
+# Create a train set and test set
+hotels_numeric_train <- hotels_numeric[-test_set, ]
+hotels_numeric_test <- hotels_numeric[test_set, ]
+```
+
+# KNN
+
+```{r cache=TRUE}
+# Retain labels from train and test set, then remove before using datasets in training the KNN model
+hotels_numeric_trainlabels <- hotels_numeric_train[, "is_canceled"]
+hotels_numeric_testlabels <- hotels_numeric_test[, "is_canceled"]
+
+hotels_numeric_train_knn <- hotels_numeric_train
+hotels_numeric_test_knn <- hotels_numeric_test
+hotels_numeric_train_knn$is_canceled <- NULL
+hotels_numeric_test_knn$is_canceled <- NULL
+
+# Train KNN model
+hotelknn_predict <- knn(train = hotels_numeric_train, test = hotels_numeric_test, cl = hotels_numeric_trainlabels, k = 330)
+
+# View confusion matrix
+CrossTable(x = hotels_numeric_testlabels, y = hotelknn_predict, prop.chisq = FALSE)
+```
+The KNN model is able to predict hotel room cancellations with an accuracy of **`r round(mean(hotels_test$is_canceled == hotelknn_predict)*100)`**%.
+
+# ANN
+```{r cache=TRUE}
+# Take a small sample for training. We would prefer to use the entire training set but found that our computers simply could not handle the complexity
+small_sample <- sample(1:nrow(hotels_numeric_train), 10000) 
+hotels_numeric_train_small <- hotels_numeric_train[small_sample,]
+
+# Train ANN
+ANN <- neuralnet(is_canceled ~ ., data = hotels_numeric_train_small, hidden = 3, rep = 3)
+summary(ANN)
+```
+
+```{r}
+
+#Plot ANN
+plot(ANN)
+
+## Evaluating model performance ----
+# Obtain model results
+model_results <- compute(ANN, hotels_numeric_test)
+# Obtain predicted strength values; output is between 0-1 need to determine probabilities
+predicted_hotels <- ifelse(model_results$net.result > 0.5, 1,0)
+# Examine the correlation between predicted and actual values
+cor(predicted_hotels, hotels_numeric_test$is_canceled)
+
+# Confusion Matrix
+CrossTable( x = hotels_numeric_test$is_canceled, y = predicted_hotels, prop.chisq=FALSE)
+
+```
+
+The ANN model is able to predict hotel room cancellations with an accuracy of **`r round(mean(hotels_test$is_canceled == predicted_hotels)*100)`**%.
+
+## Analysis Write Up
+
+In this project, we looked at data surrounding hotel cancellations and tried to answer the question of "Can hotel cancellations be predicted with a reasonable level of accuracy looking at factors such as arrival, customer type, and more?". In the first iteration of the logistic regression model, we started with all potential independent variables, eliminating duplicative fields such as reservation status or fields that provide no additional information, and found that a large number of the variables were statistically significant/heavily weighted when determining hotel cancellations, and decided to do a second iteration of the logit model, removing the insignificant independent variables, and found that most of the factors were still statistically significant in determining cancellations, aligning with our initial hypothesis. Most of the market segment, distribution channel, and reserved/assigned room type factors did not appear to be statistically significant as compared to the other factors.
+
+Moving forward in our analysis, we decided to use the second iteration of the logit model to predict hotel cancellations, and found that the logistic regression model is able to predict hotel room cancellations with an accuracy of 81%. We found this performance to be quite good, but reasonable given the high number of statistically significant variables available to us in the data.
+
+Next, we built a decision tree model using all available independent variables and found that the model is able to predict hotel room cancellations at 85% accuracy, which we determined to be reasonable and in alignment with our expectations based on the logistic regression model.
+
+Finally, we created the ANN and KNN models. We found the KNN model to achieve an accuracy of 71% and the ANN model to achieve an accuracy of 69%, which is more in line with the other models. 
+
+In conclusion, our data set and the factors included proved to be significant in determining hotel cancellations and in being good predictors of hotel cancellations, as shown by our models. Therefore our business question is answered, that indeed hotel cancellations can be predicted with reasonable (>69%) accuracy based on fields/factors collected on the average customer.
+
